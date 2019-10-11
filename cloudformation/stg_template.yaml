@@ -91,9 +91,9 @@ Resources:
       HealthCheckType: ELB
       HealthCheckGracePeriod: 300
       Cooldown: 300
-      DesiredCapacity: '2'
-      MinSize: '2'
-      MaxSize: '2'
+      DesiredCapacity: '1'
+      MinSize: '1'
+      MaxSize: '1'
       LaunchConfigurationName:
         Ref: CoreNLPLaunchConfig
       # Direct reference to subnets registered to default-vpc
