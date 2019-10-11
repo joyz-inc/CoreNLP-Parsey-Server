@@ -4,8 +4,6 @@
 
 `aws cloudformation create-stack --stack-name core-nlp --template-body file://template.yaml --capabilities CAPABILITY_IAM`
 
-This will create a CloudFormation stack. To spin up all resources for corenlp, please use the command under Updating Configuration after creating the stack.
-
 ## Updating Configuration
 
 `aws cloudformation deploy --template-file template.yaml --stack-name core-nlp --capabilities CAPABILITY_NAMED_IAM`

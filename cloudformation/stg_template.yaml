@@ -36,7 +36,7 @@ Resources:
   AccessLogsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: 'corenlp-access-logs'
+      BucketName: 'corenlp-stg-access-logs'
   AccessLogsBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -79,7 +79,7 @@ Resources:
       AssociatePublicIpAddress: true
       ImageId: 'ami-075e0d6ba88027545'
       InstanceType: t2.micro
-      KeyName: 'CoreNLPProduction'
+      KeyName: 'CoreNLPStaging'
       SecurityGroups:
       - Ref: CoreNLPInstanceSecurityGroup
       IamInstanceProfile:
@@ -87,7 +87,7 @@ Resources:
   CoreNLPAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      AutoScalingGroupName: 'CoreNLPProduction'
+      AutoScalingGroupName: 'CoreNLPStaging'
       HealthCheckType: ELB
       HealthCheckGracePeriod: 300
       Cooldown: 300
@@ -104,7 +104,7 @@ Resources:
         - Ref: CoreNLPTargetGroup
       Tags:
         - Key: Name
-          Value: 'core-nlp-production'
+          Value: 'core-nlp-staging'
           PropagateAtLaunch: 'true'
 
   CoreNLPListener:
@@ -122,7 +122,7 @@ Resources:
     DependsOn: AccessLogsBucketPolicy
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: CoreNLPProduction
+      Name: CoreNLPStaging
       Scheme: internet-facing
       LoadBalancerAttributes:
         - Key: access_logs.s3.enabled
