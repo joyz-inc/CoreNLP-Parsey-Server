@@ -9,29 +9,29 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allows access to CoreNLP from internet
-    # Direct reference to VPC created for stt-stream.joyzbackend.com
-    VpcId: vpc-021dd2e2929b0d468
-    SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: '9000'
-        ToPort: '9000'
-        CidrIp: 0.0.0.0/0
+    # Default VPC
+      VpcId: vpc-25c00640
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '9000'
+          ToPort: '9000'
+          CidrIp: 0.0.0.0/0
   CoreNLPInstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allows access from CoreNLP Load Balancer to EC2 Instances
-    # Direct reference to VPC created for stt-stream.joyzbackend.cmo
-    VpcId: vpc-021dd2e2929b0d468
-    SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: '9000'
-        ToPort: '9000'
-        SourceSecurityGroupId:
-          Ref: CoreNLPLoadBalancerSecurityGroup
-      - IpProtocal: tcp
-        FromPort: '22'
-        ToPort: '22'
-        CidrIp: 0.0.0.0/0
+      # Default VPC
+      VpcId: vpc-25c00640
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '9000'
+          ToPort: '9000'
+          SourceSecurityGroupId:
+            Ref: CoreNLPLoadBalancerSecurityGroup
+        - IpProtocal: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
 
   AccessLogsBucket:
     Type: AWS::S3::Bucket
@@ -71,7 +71,7 @@ Resources:
         - Ref: CoreNLPRole
 
   CoreNLPLaunchConfig:
-    Type: AWS::Autoscaling::LaunchConfiguration
+    Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       AssociatedPublicIpAddress: true
       ImageId: 'ami-075e0d6ba88027545'
@@ -93,10 +93,10 @@ Resources:
       MaxSize: '2'
       LaunchConfigurationName:
         Ref: CoreNLPLaunchConfig
-      # Direct reference to subnets created for stt-stream.joyzbackend.com
+      # Direct reference to subnets registered to default-vpc
       VPCZoneIdentifier:
-        - subnet-0ddd0d4fef73508df
-        - subnet-0fe2006f468c69834
+        - subnet-05448f72
+        - subnet-23a04f7a
       TargetGroupARNS:
         - Ref: CoreNLPTargetGroup
       Tags:
@@ -106,7 +106,7 @@ Resources:
 
   CoreNLPListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
-    Propertise:
+    Properties:
       DefaultActions:
         - Type: forward
           TargetGroupArn:
@@ -128,10 +128,10 @@ Resources:
           Value: !Ref AccessLogsBucket
         - Key: access_logs.s3.prefix
           Value: Logs
-      # Direct reference to subnets created for stt-stream.joyzbackend.com
+      # Direct reference to subnets registered to default-vpc
       Subnets:
-        - subnet-0ddd0d4fef73508df
-        - subnet-0fe2006f468c69834
+        - subnet-05448f72
+        - subnet-23a04f7a
       SecurityGroups:
         - Ref: CoreNLPLoadBalancerSecurityGroup
   CoreNLPTargetGroup:
@@ -143,8 +143,8 @@ Resources:
       HealthCheckPath: /
       Port: 9000
       Protocol: HTTP
-      # Direct reference to VPC created for stt-stream.joyzbackend.com
-      VpcId: vpc-021dd2e2929b0d468
+      # Default VPC
+      VpcId: vpc-25c00640
 
 Outputs:
   WebappUrl:
