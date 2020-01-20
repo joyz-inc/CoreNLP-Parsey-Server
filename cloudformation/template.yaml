@@ -2,6 +2,28 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: >-
   Stanford CoreNLP Server
 
+Parameters:
+  Env:
+    Type: String
+    Default: Test
+    AllowedValues:
+      - Test
+      - Staging
+      - Production
+    Description: Specify environment to which this template will be deployed.
+
+Mappings:
+  EnvironmentMap:
+    Test:
+      "InstanceType": "t2.micro"
+      "ScalingCapacity": "1"
+    Staging:
+      "InstanceType": "t2.micro"
+      "ScalingCapacity": "1"
+    Production:
+      "InstanceType": "t2.micro"
+      "ScalingCapacity": "2"
+
 Resources:
   # Needs: AWS::EC2::VPC and AWS::EC2::InternetGateway?
   # Limit 5 per region -- maybe we can use pre-existing one.
@@ -36,7 +58,7 @@ Resources:
   AccessLogsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: 'corenlp-access-logs'
+      BucketName: !Sub 'corenlp-${Env}-access-logs'
   AccessLogsBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -79,7 +101,7 @@ Resources:
       AssociatePublicIpAddress: true
       ImageId: 'ami-075e0d6ba88027545'
       InstanceType: t2.micro
-      KeyName: 'CoreNLPProduction'
+      KeyName: !Sub 'CoreNLP${Env}'
       SecurityGroups:
       - Ref: CoreNLPInstanceSecurityGroup
       IamInstanceProfile:
@@ -87,13 +109,13 @@ Resources:
   CoreNLPAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      AutoScalingGroupName: 'CoreNLPProduction'
+      AutoScalingGroupName: 'CoreNLP${Env}'
       HealthCheckType: ELB
       HealthCheckGracePeriod: 300
       Cooldown: 300
-      DesiredCapacity: '2'
-      MinSize: '2'
-      MaxSize: '2'
+      DesiredCapacity: !FindInMap [EnvironmentMap, !Ref Env, "ScalingCapacity"]
+      MinSize: !FindInMap [EnvironmentMap, !Ref Env, "ScalingCapacity"]
+      MaxSize: !FindInMap [EnvironmentMap, !Ref Env, "ScalingCapacity"]
       LaunchConfigurationName:
         Ref: CoreNLPLaunchConfig
       # Direct reference to subnets registered to default-vpc
@@ -104,7 +126,7 @@ Resources:
         - Ref: CoreNLPTargetGroup
       Tags:
         - Key: Name
-          Value: 'core-nlp-production'
+          Value: !Sub 'core-nlp-${Env}'
           PropagateAtLaunch: 'true'
 
   CoreNLPListener:
@@ -122,7 +144,7 @@ Resources:
     DependsOn: AccessLogsBucketPolicy
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: CoreNLPProduction
+      Name: !Sub "CoreNLP${Env}"
       Scheme: internet-facing
       LoadBalancerAttributes:
         - Key: access_logs.s3.enabled
